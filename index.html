@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>QuickScan — Answer Sheet Designer</title>
+    <style>
+        :root {
+            font-family: Inter, Arial, sans-serif;
+            color: #18243b;
+            background: #f0f3f9
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: minmax(280px, 330px) 1fr;
+            min-height: 100vh
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid #dce2eb;
+            padding: 22px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: auto
+        }
+
+        h1 {
+            font-size: 21px;
+            margin: 0 0 5px
+        }
+
+        h2 {
+            font-size: 14px;
+            margin: 23px 0 12px
+        }
+
+        .subtitle,
+        .help {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5
+        }
+
+        .field {
+            margin-top: 12px
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 5px
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            font-size: 13px
+        }
+
+        .counter {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .counter input {
+            text-align: center;
+            font-weight: 700
+        }
+
+        .counter button {
+            width: 42px
+        }
+
+        .btn,
+        button {
+            cursor: pointer;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fff;
+            font-weight: 700
+        }
+
+        .btn.primary {
+            background: #1d4ed8;
+            color: white;
+            border-color: #1d4ed8
+        }
+
+        .btns {
+            display: grid;
+            gap: 8px;
+            margin-top: 22px
+        }
+
+        .preview {
+            padding: 24px;
+            min-width: 0
+        }
+
+        .preview-head {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px
+        }
+
+        .preview-head h2 {
+            margin: 0;
+            font-size: 19px
+        }
+
+        .paper-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            align-items: flex-start
+        }
+
+        /* Printed size and internal geometry. All dimensions below use millimetres. */
+        .paper {
+            width: 215.9mm;
+            height: 330.2mm;
+            background: #fff;
+            color: #111827;
+            position: relative;
+            flex: 0 0 auto;
+            box-shadow: 0 9px 30px #0f172a22;
+            overflow: hidden
+        }
+
+        .marker {
+            position: absolute;
+            width: 8mm;
+            height: 8mm;
+            background: #000;
+            z-index: 3
+        }
+
+        .marker.tl {
+            left: 12mm;
+            top: 12mm
+        }
+
+        .marker.tr {
+            right: 12mm;
+            top: 12mm
+        }
+
+        .marker.br {
+            right: 12mm;
+            bottom: 12mm
+        }
+
+        .marker.bl {
+            left: 12mm;
+            bottom: 12mm
+        }
+
+        .sheet-header {
+            position: absolute;
+            top: 25mm;
+            left: 26mm;
+            width: 163.9mm;
+            height: 27mm;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 3mm;
+            border-bottom: .25mm solid #64748b;
+            padding-bottom: 2mm
+        }
+
+        .school-logo,
+        .logo-placeholder {
+            width: 18mm;
+            height: 18mm;
+            object-fit: contain;
+            flex-shrink: 0
+        }
+
+        .logo-placeholder {
+            width: 22mm;
+            height: 22mm;
+            border: .3mm dashed #94a3b8;
+            color: #94a3b8;
+            display: grid;
+            place-items: center;
+            font-size: 8pt;
+            flex-shrink: 0
+        }
+
+        .header-lines {
+            flex: 1;
+            text-align: center;
+            min-width: 0
+        }
+
+        .school-name {
+            font-size: 12pt;
+            font-weight: 800;
+            line-height: 1.15;
+            overflow-wrap: anywhere
+        }
+
+        .department {
+            font-size: 9pt;
+            margin-top: 1mm;
+            overflow-wrap: anywhere
+        }
+
+        .exam-title {
+            font-size: 11pt;
+            font-weight: 700;
+            margin-top: 2mm;
+            overflow-wrap: anywhere
+        }
+
+        .identity {
+            position: absolute;
+            top: 55mm;
+            left: 26mm;
+            width: 163.9mm;
+            font-size: 10pt
+        }
+
+        .identity-row {
+            display: flex;
+            gap: 8mm;
+            margin-top: 3mm
+        }
+
+        .identity-field {
+            flex: 1;
+            white-space: nowrap
+        }
+
+        .rule {
+            display: inline-block;
+            border-bottom: .25mm solid #374151;
+            width: 65%;
+            height: 3.7mm
+        }
+
+        .identity-field.short .rule {
+            width: 47%
+        }
+
+        .sheet-code {
+            font-size: 8pt;
+            color: #475569;
+            margin-top: 3mm
+        }
+
+        .answer-area {
+            position: absolute;
+            top: 80mm;
+            left: 26mm;
+            width: 163.9mm;
+            height: 228mm
+        }
+
+        .area-heading {
+            text-align: center;
+            font-weight: 800;
+            font-size: 10pt;
+            border-bottom: .25mm solid #cbd5e1;
+            padding-bottom: 2mm
+        }
+
+        .columns {
+            display: flex;
+            justify-content: space-around;
+            gap: 3mm;
+            margin-top: 4mm;
+            height: 215mm
+        }
+
+        .answer-column {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gapmm)
+        }
+
+        .answer-row {
+            position: absolute;
+            left: 0;
+            width: 163.9mm;
+            height: 7.7mm;
+            white-space: nowrap
+        }
+
+        .answer-row .qnum {
+            position: absolute;
+            top: 2mm;
+            left: 0;
+            width: 9mm;
+            margin: 0
+        }
+
+        .answer-row .bubble {
+            position: absolute;
+            top: 1.65mm;
+            margin: 0
+        }
+
+        .qnum {
+            display: inline-block;
+            width: 9mm;
+            font-size: 8pt;
+            font-weight: 600;
+            text-align: right;
+            margin-right: 3mm
+        }
+
+        .bubble {
+            width: 4.4mm;
+            height: 4.4mm;
+            border: .3mm solid #111827;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6.5pt;
+            font-weight: 500;
+            margin-right: 3.5mm;
+            flex-shrink: 0
+        }
+
+        .sheet-footer {
+            position: absolute;
+            bottom: 13mm;
+            left: 28mm;
+            width: 159.9mm;
+            text-align: center;
+            font-size: 7pt;
+            color: #475569
+        }
+
+        .page-label {
+            position: absolute;
+            top: 18mm;
+            left: 75mm;
+            width: 65mm;
+            text-align: center;
+            font-size: 7pt;
+            color: #475569
+        }
+
+        .tiny {
+            font-size: 11px;
+            color: #64748b
+        }
+
+        .error {
+            font-size: 12px;
+            color: #be123c;
+            margin-top: 8px
+        }
+
+        @media(max-width:1150px) {
+            .paper-stack {
+                zoom: .7
+            }
+        }
+
+        @media(max-width:800px) {
+            .app {
+                display: block
+            }
+
+            .sidebar {
+                position: static;
+                height: auto
+            }
+
+            .preview {
+                padding: 12px
+            }
+
+            .paper-stack {
+                zoom: .47
+            }
+        }
+
+        @page {
+            size: 8.5in 13in;
+            margin: 0
+        }
+
+        @media print {
+
+            html,
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important
+            }
+
+            .app {
+                display: block
+            }
+
+            .sidebar,
+            .preview-head {
+                display: none !important
+            }
+
+            .preview {
+                padding: 0 !important
+            }
+
+            .paper-stack {
+                display: block !important;
+                zoom: 1 !important
+            }
+
+            .paper {
+                width: 215.9mm;
+                height: 330.2mm;
+                box-shadow: none !important;
+                break-after: page;
+                page-break-after: always;
+                margin: 0
+            }
+
+            .paper:last-child {
+                break-after: auto;
+                page-break-after: auto
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <h1>QuickScan</h1>
+            <div class="subtitle">OMR answer sheet designer · 8.5 × 13 in</div>
+            <h2>Examination</h2>
+            <div class="field"><label for="count">Question count (10–200, step 10)</label>
+                <div class="counter"><button id="minus" type="button">−</button><input id="count" type="number" min="10"
+                        max="200" step="10" value="50"><button id="plus" type="button">+</button></div>
+                <div class="help">Additional pages are generated automatically when necessary.</div>
+            </div>
+            <div class="field"><label for="examCode">Examination code</label><input id="examCode" value="EXAM-001"
+                    maxlength="45"></div>
+            <div class="field"><label for="setCode">Answer set</label><input id="setCode" value="A" maxlength="10">
+            </div>
+            <h2>Custom header</h2>
+            <div class="field"><label for="school">School name</label><input id="school" value="Tarlac State University"
+                    maxlength="130"></div>
+            <div class="field"><label for="department">College / Department</label><input id="department"
+                    value="College of Computer Studies" maxlength="130"></div>
+            <div class="field"><label for="examTitle">Sheet heading</label><input id="examTitle"
+                    value="EXAMINATION ANSWER SHEET" maxlength="130"></div>
+            <div class="field"><label for="logo1">School logo (PNG, JPG or SVG)</label>
+                <input id="logo1" type="file" accept="image/png,image/jpeg,image/svg+xml">
+                <div class="help">Logo is kept locally in the browser. No file is uploaded to a server.</div>
+            </div>
+            <div class="field"><label for="logo2">College logo (PNG, JPG or SVG)</label>
+                <input id="logo2" type="file" accept="image/png,image/jpeg,image/svg+xml">
+                <div class="help">Logo is kept locally in the browser. No file is uploaded to a server.</div>
+            </div>
+            <div id="error" class="error" role="status"></div>
+            <div class="btns"><button class="btn primary" id="print" type="button">Print answer sheet</button><button
+                    class="btn" id="export" type="button">Export scanner template (.json)</button></div>
+            <p class="help">Print at <b>100% / Actual size</b>, with 8.5 × 13 in paper selected. Disable printer “Fit to
+                page”, headers, and footers. Use dark, sharp printing and avoid photocopier scaling.</p>
+        </aside>
+        <main class="preview">
+            <div class="preview-head">
+                <div>
+                    <h2>Print preview</h2>
+                    <div class="tiny" id="summary"></div>
+                </div><span class="tiny">Corner marker geometry stays fixed.</span>
+            </div>
+            <div class="paper-stack" id="sheets"></div>
+        </main>
+    </div>
+    <script>
+        'use strict';
+        // Physical coordinates in millimetres, relative to the top-left of each 8.5x13" page.
+        const SETTINGS = Object.freeze({ paper: { widthMM: 215.9, heightMM: 330.2 }, marker: { sizeMM: 8, edgeMM: 12 }, answerRegion: { leftMM: 26, topMM: 80, widthMM: 163.9, heightMM: 228 }, bubbleDiameterMM: 4.4, firstRowCenterYMM: 95.85, rowStepMM: 7.7, maxRowsPerColumn: 28, columnsPerPage: 2, normalizedPixelsPerMM: 4 });
+        const byId = id => document.getElementById(id);
+        const fields = ['count', 'examCode', 'setCode', 'school', 'department', 'examTitle'];
+        let logo1DataURL = null;
+        let logo2DataURL = null;
+        function safe(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+        function countValue() { const raw = Number(byId('count').value); const nearest = Math.round((Number.isFinite(raw) ? raw : 50) / 10) * 10; return Math.min(200, Math.max(10, nearest)); }
+        function values() { return { count: countValue(), examCode: byId('examCode').value.trim(), setCode: byId('setCode').value.trim(), school: byId('school').value.trim(), department: byId('department').value.trim(), examTitle: byId('examTitle').value.trim() }; }
+        const questionsPerPage = SETTINGS.maxRowsPerColumn * SETTINGS.columnsPerPage;
+        function bubblePositions(localIndex) { const col = Math.floor(localIndex / SETTINGS.maxRowsPerColumn); const row = localIndex % SETTINGS.maxRowsPerColumn; const cx = SETTINGS.answerRegion.leftMM + col * 83 + 13; const cy = SETTINGS.firstRowCenterYMM + row * SETTINGS.rowStepMM; return [0, 1, 2, 3].map(i => ({ choice: 'ABCD'[i], xMM: +(cx + i * 7.9).toFixed(3), yMM: +cy.toFixed(3), radiusMM: SETTINGS.bubbleDiameterMM / 2 })); }
+        function markerPositions() { const { widthMM: w, heightMM: h } = SETTINGS.paper; const { edgeMM: e, sizeMM: s } = SETTINGS.marker; return [{ id: 'TL', xMM: e + s / 2, yMM: e + s / 2 }, { id: 'TR', xMM: w - e - s / 2, yMM: e + s / 2 }, { id: 'BR', xMM: w - e - s / 2, yMM: h - e - s / 2 }, { id: 'BL', xMM: e + s / 2, yMM: h - e - s / 2 }]; }
+        function template() { const v = values(); const pageCount = Math.ceil(v.count / questionsPerPage); return { schema: 'quickscan.omr.v1', templateVersion: 'longbond-omr-v1', paper: { ...SETTINGS.paper, units: 'mm', orientation: 'portrait' }, normalizedImage: { widthPX: Math.round(SETTINGS.paper.widthMM * SETTINGS.normalizedPixelsPerMM), heightPX: Math.round(SETTINGS.paper.heightMM * SETTINGS.normalizedPixelsPerMM), pixelsPerMM: SETTINGS.normalizedPixelsPerMM }, markers: { shape: 'filled-square', sizeMM: SETTINGS.marker.sizeMM, centers: markerPositions() }, configuration: { questionCount: v.count, choices: ['A', 'B', 'C', 'D'], questionIncrement: 10, questionsPerPage, pageCount }, header: { school: v.school, department: v.department, title: v.examTitle, logo1Filename: byId('logo1').files[0]?.name || null, logo2Filename: byId('logo2').files[0]?.name || null }, examCode: v.examCode, setCode: v.setCode, pages: Array.from({ length: pageCount }, (_, pageIndex) => ({ pageNumber: pageIndex + 1, questions: Array.from({ length: Math.min(questionsPerPage, v.count - pageIndex * questionsPerPage) }, (_, i) => ({ number: pageIndex * questionsPerPage + i + 1, bubbles: bubblePositions(i) })) })) }; }
+        function makePage(pageIndex, v, pageCount) {
+            const start = pageIndex * questionsPerPage; const length = Math.min(questionsPerPage, v.count - start); const paper = document.createElement('section'); paper.className = 'paper'; paper.setAttribute('aria-label', `Answer sheet page ${pageIndex + 1}`);
+            const marks = ['tl', 'tr', 'br', 'bl'].map(k => `<div class="marker ${k}"></div>`).join('');
+            const logo1 = logo1DataURL
+                ? `<img class="school-logo"
+       alt="School logo" src="${logo1DataURL}">`
+                : '<div class="logo-placeholder">LOGO 1</div>';
+
+            const logo2 = logo2DataURL
+                ? `<img class="school-logo"
+       alt="College logo" src="${logo2DataURL}">`
+                : '<div class="logo-placeholder">LOGO 2</div>';
+            const rows = Array.from({ length }, (_, i) => { const num = start + i + 1; const centers = bubblePositions(i); const top = +(centers[0].yMM - SETTINGS.answerRegion.topMM - SETTINGS.rowStepMM / 2).toFixed(3); const leftLabel = (Math.floor(i / SETTINGS.maxRowsPerColumn) * 83); return `<div class="answer-row" style="top:${top}mm"><span class="qnum" style="left:${leftLabel}mm">${num}.</span>${centers.map(c => `<span class="bubble" style="left:${(c.xMM - SETTINGS.answerRegion.leftMM - SETTINGS.bubbleDiameterMM / 2).toFixed(3)}mm">${c.choice}</span>`).join('')}</div>`; }).join('');
+            paper.innerHTML = `${marks}<div class="page-label">Page ${pageIndex + 1} of ${pageCount}</div>
+<div class="sheet-header">
+    ${logo1}
+    <div class="header-lines">
+        <div class="school-name">${safe(v.school)}</div>
+        <div class="department">${safe(v.department)}</div>
+        <div class="exam-title">${safe(v.examTitle)}</div>
+    </div>
+    ${logo2}
+</div>
+<div class="identity"><div class="identity-row"><div class="identity-field">Student name: <span class="rule"></span></div></div><div class="identity-row"><div class="identity-field">Student ID: <span class="rule"></span></div><div class="identity-field short">Section: <span class="rule"></span></div></div><div class="sheet-code">Exam: ${safe(v.examCode)} &nbsp; | &nbsp; Set: ${safe(v.setCode)} &nbsp; | &nbsp; Page: ${pageIndex + 1}/${pageCount}</div></div><div class="answer-area"><div class="area-heading">SHADE ONE ANSWER PER QUESTION · A–D</div>${rows}</div><div class="sheet-footer">Use a dark pencil or pen. Do not write on the black registration squares.</div>`; return paper;
+        }
+        function render() {
+            const count = countValue();
+            byId('count').value = count;
+            const v = values();
+            const pages = Math.ceil(v.count / questionsPerPage); 
+            const dest = byId('sheets'); 
+            dest.replaceChildren(...Array.from({ length: pages }, (_, p) => makePage(p, v, pages))); 
+            byId('summary').textContent = `${v.count} questions · ${pages} page${pages > 1 ? 's' : ''} · 8.5 × 13 in · 4 choices`;
+        }
+        fields.forEach(id => byId(id).addEventListener('change', render));['school', 'department', 'examTitle', 'examCode', 'setCode'].forEach(id => byId(id).addEventListener('input', render));
+        byId('minus').onclick = () => { byId('count').value = countValue() - 10; render() }; byId('plus').onclick = () => { byId('count').value = countValue() + 10; render() };
+
+        function handleLogoUpload(inputId, callback) {
+            byId(inputId).addEventListener('change', e => {
+                const file = e.target.files[0];
+                byId('error').textContent = '';
+
+                if (!file) {
+                    callback(null);
+                    render();
+                    return;
+                }
+
+                const allowed = [
+                    'image/png',
+                    'image/jpeg',
+                    'image/svg+xml'
+                ];
+
+                if (!allowed.includes(file.type) ||
+                    file.size > 2_000_000) {
+                    byId('error').textContent =
+                        'Choose PNG, JPG, or SVG below 2 MB.';
+                    e.target.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = () => {
+                    callback(reader.result);
+                    render();
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        handleLogoUpload('logo1', data => {
+            logo1DataURL = data;
+        });
+
+        handleLogoUpload('logo2', data => {
+            logo2DataURL = data;
+        });
+
+        byId('print').onclick = () => window.print(); byId('export').onclick = () => { const contents = JSON.stringify(template(), null, 2); const blob = new Blob([contents], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `quickscan-${values().count}-item-template.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000) };
+        render();
+    </script>
+</body>
+
+</html>
