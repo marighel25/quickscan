@@ -1,337 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>QuickScan — Live OMR Scanner</title>
-    <style>
-        :root {
-            font-family: Arial, sans-serif;
-            color: #18243b;
-            background: #eef2f8
-        }
-
-        * {
-            box-sizing: border-box
-        }
-
-        body {
-            margin: 0
-        }
-
-        header {
-            background: white;
-            padding: 15px 24px;
-            border-bottom: 1px solid #dbe3ee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap
-        }
-
-        h1 {
-            font-size: 21px;
-            margin: 0
-        }
-
-        a {
-            color: #1d4ed8
-        }
-
-        main {
-            display: grid;
-            grid-template-columns: minmax(280px, 350px) 1fr;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 0 16px
-        }
-
-        .panel {
-            background: white;
-            padding: 18px;
-            border: 1px solid #dce2eb;
-            border-radius: 13px
-        }
-
-        h2 {
-            font-size: 17px;
-            margin: 0 0 12px
-        }
-
-        label {
-            font-size: 13px;
-            font-weight: bold;
-            display: block;
-            margin: 14px 0 6px
-        }
-
-        input,
-        select,
-        button {
-            font: inherit
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 9px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px
-        }
-
-        button {
-            padding: 10px 13px;
-            border: 1px solid #cbd5e1;
-            background: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px
-        }
-
-        button.primary {
-            background: #1d4ed8;
-            color: white;
-            border-color: #1d4ed8
-        }
-
-        button:disabled {
-            opacity: .5;
-            cursor: not-allowed
-        }
-
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px
-        }
-
-        .row button {
-            flex: 1
-        }
-
-        .muted {
-            font-size: 12px;
-            color: #64748b;
-            line-height: 1.6
-        }
-
-        .viewport {
-            position: relative;
-            background: #121923;
-            border-radius: 10px;
-            overflow: hidden;
-            min-height: 250px;
-            display: grid;
-            place-items: center
-        }
-
-        video,
-        img#still {
-            width: 100%;
-            height: auto;
-            display: block
-        }
-
-        #overlay {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none
-        }
-
-        #still {
-            display: none
-        }
-
-        .notice {
-            padding: 12px;
-            background: #eef2ff;
-            border-radius: 8px;
-            font-size: 13px;
-            margin: 12px 0
-        }
-
-        .notice.success {
-            background: #dcfce7
-        }
-
-        .notice.warn {
-            background: #fef3c7
-        }
-
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 9px
-        }
-
-        .metric {
-            padding: 12px;
-            background: #f1f5f9;
-            text-align: center;
-            border-radius: 8px
-        }
-
-        .metric b {
-            font-size: 19px;
-            display: block
-        }
-
-        #results {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px
-        }
-
-        #results td,
-        #results th {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 8px;
-            text-align: left
-        }
-
-        #results tr.flag {
-            background: #fff7ed
-        }
-
-        .scroll {
-            max-height: 380px;
-            overflow: auto
-        }
-
-        #debug {
-            white-space: pre-wrap;
-            font-size: 11px;
-            color: #475569
-        }
-
-        .instructions {
-            font-size: 12px;
-            color: #475569
-        }
-
-        #status {
-            font-weight: 700
-        }
-
-        @media(max-width:850px) {
-            main {
-                grid-template-columns: 1fr
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <header>
-        <h1>QuickScan · Live Scanner</h1><a href="index.html">← Answer sheet designer</a>
-    </header>
-    <main>
-        <aside class="panel">
-            <h2>Scan setup</h2><label for="template">1. Import matching scanner template (.json)</label><input
-                id="template" type="file" accept="application/json,.json">
-            <div class="notice" id="templateStatus">Select the JSON exported from the exact printed answer sheet.</div>
-            <label for="page">2. Page to scan</label><select id="page" disabled>
-                <option>Import a template first</option>
-            </select><label for="device">3. Camera</label><select id="device">
-                <option value="">Default rear camera</option>
-            </select>
-            <div class="row"><button id="start" class="primary" disabled>Start camera</button><button id="stop"
-                    disabled>Stop</button></div><label for="photo">Or test with a photograph</label><input id="photo"
-                type="file" accept="image/png,image/jpeg,image/webp">
-            <div class="muted">Camera requires HTTPS or localhost, browser permission, and an accessible webcam.
-                OpenCV.js is loaded from the internet.</div>
-            <hr>
-            <h2>Detection settings</h2><label for="stable">Required stable frames</label><select id="stable">
-                <option>3</option>
-                <option selected>5</option>
-                <option>7</option>
-            </select><label for="cutoff">Mark sensitivity</label><select id="cutoff">
-                <option value="0.34">More sensitive</option>
-                <option value="0.46" selected>Balanced (prototype)</option>
-                <option value="0.60">Less sensitive</option>
-            </select>
-            <div class="row"><button id="rescan" disabled>Rescan current sheet</button><button id="download"
-                    disabled>Export scan JSON</button></div>
-            <div class="muted">This prototype identifies marks but does not calculate a score until an answer key is
-                provided. Ambiguous marks are flagged rather than silently graded.</div>
-        </aside>
-        <section class="panel">
-            <h2>Real-time detection</h2>
-            <div class="viewport" id="viewport"><video id="video" autoplay muted playsinline></video><img id="still"
-                    alt="Uploaded answer sheet photograph"><canvas id="overlay"></canvas></div>
-            <div class="notice" id="status">Import template to begin.</div>
-            <div class="metrics">
-                <div class="metric"><b id="markerCount">0 / 4</b>Markers</div>
-                <div class="metric"><b id="stability">0 / 5</b>Stable frames</div>
-                <div class="metric"><b id="recognized">—</b>Answers</div>
-            </div>
-            <h2 style="margin-top:20px">Detected responses</h2>
-            <div class="scroll">
-                <table id="results">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Result</th>
-                            <th>Strongest fill</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rows">
-                        <tr>
-                            <td colspan="3">No scan yet.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p id="debug"></p>
-        </section>
-    </main>
-    <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
-    <script>
-        'use strict';
-        const el = id => document.getElementById(id);
-        const state = { template: null, page: null, stream: null, lastCorners: null, stable: 0, done: false, busy: false, lastTick: 0, result: null, stillMode: false, workingCanvas: document.createElement('canvas') };
-        const W = state.workingCanvas, wx = W.getContext('2d', { willReadFrequently: true });
-        let cvReady = false;
-        const waitForCV = setInterval(() => { if (window.cv && cv.Mat && cv.findContours) { cvReady = true; clearInterval(waitForCV); if (state.template) notify('OpenCV ready. Start camera or upload a photograph.'); } }, 250);
-        function notify(s, type = '') { el('status').textContent = s; el('status').className = 'notice ' + type; }
-        function validate(t) { if (t.schema !== 'quickscan.omr.v1' || !Array.isArray(t.markers?.centers) || t.markers.centers.length !== 4 || !Array.isArray(t.pages) || !t.pages.length || !t.normalizedImage?.pixelsPerMM) throw Error('Incompatible or invalid template. Export JSON from QuickScan designer.'); for (const page of t.pages) { if (!Array.isArray(page.questions)) throw Error('Missing page question coordinates.'); for (const q of page.questions) { if (!Number.isInteger(q.number) || !Array.isArray(q.bubbles) || q.bubbles.length !== 4 || q.bubbles.some(b => !Number.isFinite(b.xMM) || !Number.isFinite(b.yMM))) throw Error('Invalid question coordinates.'); } } }
-        el('template').addEventListener('change', async e => { try { const f = e.target.files[0]; if (!f) return; const t = JSON.parse(await f.text()); validate(t); state.template = t; el('page').replaceChildren(...t.pages.map((p, i) => { const op = document.createElement('option'); op.value = i; op.textContent = `Page ${p.pageNumber} / ${t.pages.length} — ${p.questions.length} items`; return op; })); el('page').disabled = false; state.page = 0; state.done = false; state.result = null; el('start').disabled = false; el('rescan').disabled = false; el('templateStatus').textContent = `${t.configuration.questionCount} items · ${t.pages.length} page(s) · ${t.paper.widthMM} × ${t.paper.heightMM} mm`; notify(cvReady ? 'Template ready. Start camera or upload photo.' : 'Template ready. Loading OpenCV.js…'); } catch (err) { notify(err.message, 'warn'); } });
-        el('page').onchange = () => { state.page = Number(el('page').value); resetScan(); };
-        async function listCameras() { try { const devices = await navigator.mediaDevices.enumerateDevices(); const cams = devices.filter(d => d.kind === 'videoinput'); el('device').replaceChildren(new Option('Default rear camera', ''), ...cams.map((d, i) => new Option(d.label || `Camera ${i + 1}`, d.deviceId))); } catch (e) { } }
-        async function startCamera() { if (!state.template) { notify('Import the matching JSON first.', 'warn'); return; } if (!cvReady) { notify('OpenCV.js is not loaded. Check internet access.', 'warn'); return; } stopCamera(); try { const selected = el('device').value; const constraints = selected ? { deviceId: { exact: selected } } : { facingMode: { ideal: 'environment' } }; const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { ...constraints, width: { ideal: 1920 }, height: { ideal: 1080 } } }); state.stream = stream; state.stillMode = false; el('still').style.display = 'none'; el('video').style.display = 'block'; el('video').srcObject = stream; await el('video').play(); el('start').disabled = true; el('stop').disabled = false; resetScan(); await listCameras(); requestAnimationFrame(loop); } catch (err) { notify('Camera error: ' + err.message, 'warn'); } }
-        function stopCamera() { if (state.stream) { state.stream.getTracks().forEach(t => t.stop()); state.stream = null; } el('video').srcObject = null; el('stop').disabled = true; el('start').disabled = !state.template; }
-        el('start').onclick = startCamera; el('stop').onclick = () => { stopCamera(); notify('Camera stopped.'); }; el('device').onchange = () => { if (state.stream) startCamera(); };
-        function resetScan() { state.done = false; state.lastCorners = null; state.stable = 0; state.result = null; el('download').disabled = true; el('stability').textContent = `0 / ${el('stable').value}`; el('recognized').textContent = '—'; el('rows').innerHTML = '<tr><td colspan="3">Waiting for scan.</td></tr>'; notify('Find all four corner squares and hold the paper steady.'); }
-        el('rescan').onclick = resetScan;
-        el('photo').onchange = async e => { if (!state.template || !cvReady) { notify('Import a template and load OpenCV first.', 'warn'); return; } const f = e.target.files[0]; if (!f) return; stopCamera(); const url = URL.createObjectURL(f); const pic = el('still'); pic.onload = () => { URL.revokeObjectURL(url); state.stillMode = true; el('video').style.display = 'none'; pic.style.display = 'block'; resetScan(); const frame = captureFrame(pic); analyze(frame, true); }; pic.src = url; };
-        function captureFrame(element) { const w = element.videoWidth || element.naturalWidth, h = element.videoHeight || element.naturalHeight; const maxSide = 1400, scale = Math.min(1, maxSide / Math.max(w, h)); W.width = Math.round(w * scale); W.height = Math.round(h * scale); wx.drawImage(element, 0, 0, W.width, W.height); return cv.imread(W); }
-        function squareCandidates(binary) { const contours = new cv.MatVector(), hierarchy = new cv.Mat(), out = []; cv.findContours(binary, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE); const frameArea = binary.cols * binary.rows; for (let i = 0; i < contours.size(); i++) { const contour = contours.get(i), area = cv.contourArea(contour), rect = cv.boundingRect(contour); if (area / frameArea > .00012 && area / frameArea < .024 && rect.width > 6 && rect.height > 6) { const ratio = rect.width / rect.height; const poly = new cv.Mat(); cv.approxPolyDP(contour, poly, cv.arcLength(contour, true) * .045, true); if (poly.rows === 4 && ratio > .65 && ratio < 1.52 && area / (rect.width * rect.height) > .62) { out.push({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, size: Math.sqrt(area), area }); } poly.delete(); } contour.delete(); } contours.delete(); hierarchy.delete(); return out.sort((a, b) => b.area - a.area).slice(0, 80); }
-        function locateCorners(candidates, w, h) {
-            if (candidates.length < 4) return null; // Choose corner-like candidates relative to their candidate envelope.
-            let best = null, bestScore = Infinity; const corners = [[.10, .10], [.90, .10], [.90, .90], [.10, .90]];
-            // Compare candidates to the four quadrants in a camera frame. Allow moderate perspective skew.
-            const bbox = { minX: Math.min(...candidates.map(p => p.x)), maxX: Math.max(...candidates.map(p => p.x)), minY: Math.min(...candidates.map(p => p.y)), maxY: Math.max(...candidates.map(p => p.y)) };
-            const midX = (bbox.minX + bbox.maxX) / 2, midY = (bbox.minY + bbox.maxY) / 2;
-            const quadrants = [[], [], [], []]; for (const p of candidates) { const idx = (p.y < midY ? 0 : 2) + (p.x < midX ? 0 : 1); quadrants[idx].push(p); } const order = [0, 1, 3, 2]; if (order.some(i => !quadrants[i].length)) return null;
-            const sorted = order.map((i, k) => quadrants[i].sort((a, b) => { const targetX = k === 0 || k === 3 ? bbox.minX : bbox.maxX, targetY = k <= 1 ? bbox.minY : bbox.maxY; return Math.hypot(a.x - targetX, a.y - targetY) - Math.hypot(b.x - targetX, b.y - targetY); }).slice(0, 6));
-            for (const a of sorted[0]) for (const b of sorted[1]) for (const c of sorted[2]) for (const d of sorted[3]) { const pts = [a, b, c, d], ss = pts.map(p => p.size), sizeRatio = Math.max(...ss) / Math.min(...ss); if (sizeRatio > 2.3) continue; const top = Math.hypot(b.x - a.x, b.y - a.y), bottom = Math.hypot(c.x - d.x, c.y - d.y), left = Math.hypot(d.x - a.x, d.y - a.y), right = Math.hypot(c.x - b.x, c.y - b.y); if (Math.min(top, bottom, left, right) < Math.max(w, h) * .15) continue; const aspect = (left + right) / (top + bottom); const expected = state.template ? (state.template.paper.heightMM - 32) / (state.template.paper.widthMM - 32) : 1.65; if (aspect < expected * .55 || aspect > expected * 1.8) continue; const polygon = Math.abs(pts.reduce((s, p, i) => s + p.x * pts[(i + 1) % 4].y - pts[(i + 1) % 4].x * p.y, 0)) / 2; if (polygon < w * h * .08) continue; const score = Math.abs(Math.log(aspect / expected)) * 2 + Math.log(sizeRatio) + Math.abs(Math.log(top / bottom)) * .6 + Math.abs(Math.log(left / right)) * .6; if (score < bestScore) { best = pts; bestScore = score; } }
-            return best && bestScore < 2.0 ? best : null;
-        }
-        function detect(frame) { const gray = new cv.Mat(), blur = new cv.Mat(), binary = new cv.Mat(); cv.cvtColor(frame, gray, cv.COLOR_RGBA2GRAY); cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0); cv.adaptiveThreshold(blur, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 31, 10); const candidates = squareCandidates(binary), corners = locateCorners(candidates, frame.cols, frame.rows); gray.delete(); blur.delete(); binary.delete(); return { corners, candidates }; }
-        function rectified(frame, corners) { const t = state.template, scale = t.normalizedImage.pixelsPerMM, width = t.normalizedImage.widthPX, height = t.normalizedImage.heightPX; const source = cv.matFromArray(4, 1, cv.CV_32FC2, corners.flatMap(p => [p.x, p.y])); const target = cv.matFromArray(4, 1, cv.CV_32FC2, t.markers.centers.flatMap(p => [p.xMM * scale, p.yMM * scale])); const matrix = cv.getPerspectiveTransform(source, target), out = new cv.Mat(); cv.warpPerspective(frame, out, matrix, new cv.Size(width, height), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255, 255, 255, 255)); source.delete(); target.delete(); matrix.delete(); return out; }
-        function readSheet(corrected) { const t = state.template, scale = t.normalizedImage.pixelsPerMM, gray = new cv.Mat(), mask = new cv.Mat(); cv.cvtColor(corrected, gray, cv.COLOR_RGBA2GRAY); cv.adaptiveThreshold(gray, mask, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 31, 10); const base = Number(el('cutoff').value), data = []; for (const q of t.pages[state.page].questions) { const ratios = q.bubbles.map(b => { const x = b.xMM * scale, y = b.yMM * scale, r = (b.radiusMM || 2.2) * scale * .67; let dark = 0, total = 0; for (let dy = -Math.ceil(r); dy <= Math.ceil(r); dy++)for (let dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) { if (dx * dx + dy * dy > r * r) continue; const px = Math.round(x + dx), py = Math.round(y + dy); if (px >= 0 && py >= 0 && px < mask.cols && py < mask.rows) { dark += mask.ucharPtr(py, px)[0] > 0 ? 1 : 0; total++; } } return total ? dark / total : 0; }); const ranked = ratios.map((r, i) => ({ r, i })).sort((a, b) => b.r - a.r), marked = ratios.map((r, i) => r >= base ? i : -1).filter(i => i >= 0); let answer = marked.length === 0 ? 'BLANK' : marked.length > 1 ? 'MULTIPLE' : 'ABCD'[marked[0]]; if (marked.length === 1 && (ranked[0].r - ranked[1].r < .17 || ranked[0].r < base + .08)) answer = 'REVIEW'; data.push({ number: q.number, answer, fillRatios: ratios.map(x => +x.toFixed(3)), strongest: +ranked[0].r.toFixed(3) }); } gray.delete(); mask.delete(); return data; }
-        function paintOverlay(corners, w, h) { const canvas = el('overlay'); canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, w, h); if (!corners) return; ctx.strokeStyle = state.done ? '#16a34a' : '#facc15'; ctx.lineWidth = Math.max(3, w / 300); ctx.beginPath(); corners.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.closePath(); ctx.stroke(); ctx.fillStyle = '#22c55e'; for (const p of corners) { ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(5, w / 120), 0, Math.PI * 2); ctx.fill(); } }
-        function finish(frame, corners) { let aligned; try { aligned = rectified(frame, corners); const answers = readSheet(aligned); state.result = { schema: 'quickscan.scan.v1', templateVersion: state.template.templateVersion, examCode: state.template.examCode, setCode: state.template.setCode, pageNumber: state.template.pages[state.page].pageNumber, scannedAt: new Date().toISOString(), answers }; state.done = true; el('download').disabled = false; el('recognized').textContent = answers.length; el('rows').replaceChildren(...answers.map(a => { const tr = document.createElement('tr'); if (['REVIEW', 'MULTIPLE'].includes(a.answer)) tr.className = 'flag'; for (const val of [a.number, a.answer, Math.round(a.strongest * 100) + '%']) { const td = document.createElement('td'); td.textContent = val; tr.appendChild(td); } return tr; })); const uncertain = answers.filter(a => ['REVIEW', 'MULTIPLE'].includes(a.answer)).length; notify(`Scan complete: ${answers.length} answers; ${uncertain} items need review. Export or rescan.`, uncertain ? 'warn' : 'success'); } catch (err) { notify('Recognition error: ' + err.message, 'warn'); } finally { if (aligned) aligned.delete(); } }
-        function analyze(frame, oneShot = false) { try { const { corners, candidates } = detect(frame); paintOverlay(corners, frame.cols, frame.rows); el('markerCount').textContent = (corners ? '4' : '0') + ' / 4'; el('debug').textContent = `Candidate marker contours: ${candidates.length}. Detection is a prototype; verify geometry under your camera and lighting.`; if (!corners) { state.stable = 0; state.lastCorners = null; if (!state.done) notify('Searching for four corner markers…'); } else if (!state.done) { let similar = false; if (state.lastCorners) { const drift = corners.reduce((s, p, i) => s + Math.hypot(p.x - state.lastCorners[i].x, p.y - state.lastCorners[i].y), 0) / 4; similar = drift < Math.max(frame.cols, frame.rows) * .008; } state.stable = similar ? state.stable + 1 : 1; state.lastCorners = corners.map(p => ({ ...p })); if (oneShot || state.stable >= Number(el('stable').value)) { finish(frame, corners); } else notify(`Markers found. Hold still: ${state.stable}/${el('stable').value}`); } el('stability').textContent = `${state.stable} / ${el('stable').value}`; } catch (err) { notify('Processing problem: ' + err.message, 'warn'); } finally { frame.delete(); } }
-        function loop(time) { if (!state.stream) return; requestAnimationFrame(loop); if (state.busy || state.done || time - state.lastTick < 180 || el('video').readyState < 2) return; state.lastTick = time; state.busy = true; try { analyze(captureFrame(el('video'))); } finally { state.busy = false; } }
-        el('download').onclick = () => { if (!state.result) return; const blob = new Blob([JSON.stringify(state.result, null, 2)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = `scan-${state.result.examCode}-page-${state.result.pageNumber}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
-        window.addEventListener('beforeunload', stopCamera);
-    </script>
-</body>
-
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QuickScan — Live OMR Scanner</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#18243b;background:#eef2f8}*{box-sizing:border-box}body{margin:0}header{background:white;padding:15px 24px;border-bottom:1px solid #dbe3ee;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:21px;margin:0}a{color:#1d4ed8}main{display:grid;grid-template-columns:minmax(280px,350px) 1fr;gap:20px;max-width:1400px;margin:20px auto;padding:0 16px}.panel{background:white;padding:18px;border:1px solid #dce2eb;border-radius:13px}h2{font-size:17px;margin:0 0 12px}label{font-size:13px;font-weight:bold;display:block;margin:14px 0 6px}input,select,button{font:inherit}input,select{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:7px}button{padding:10px 13px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer;margin-top:10px}button.primary{background:#1d4ed8;color:white;border-color:#1d4ed8}button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;flex-wrap:wrap;gap:8px}.row button{flex:1}.muted{font-size:12px;color:#64748b;line-height:1.6}.viewport{position:relative;background:#121923;border-radius:10px;overflow:hidden;min-height:250px;display:grid;place-items:center}video,img#still{width:100%;height:auto;display:block}#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}#still{display:none}.notice{padding:12px;background:#eef2ff;border-radius:8px;font-size:13px;margin:12px 0}.notice.success{background:#dcfce7}.notice.warn{background:#fef3c7}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.metric{padding:12px;background:#f1f5f9;text-align:center;border-radius:8px}.metric b{font-size:19px;display:block}#results{width:100%;border-collapse:collapse;font-size:13px}#results td,#results th{border-bottom:1px solid #e2e8f0;padding:8px;text-align:left}#results tr.flag{background:#fff7ed}.scroll{max-height:380px;overflow:auto}#debug{white-space:pre-wrap;font-size:11px;color:#475569}.instructions{font-size:12px;color:#475569}#status{font-weight:700}@media(max-width:850px){main{grid-template-columns:1fr}}
+</style>
+</head><body>
+<header><h1>QuickScan · Live Scanner</h1><a href="index.html">← Answer sheet designer</a></header>
+<main><aside class="panel"><h2>Scan setup</h2><label for="template">1. Import matching scanner template (.json)</label><input id="template" type="file" accept="application/json,.json"><div class="notice" id="templateStatus">Select the JSON exported from the exact printed answer sheet.</div><label for="page">2. Page to scan</label><select id="page" disabled><option>Import a template first</option></select><label for="device">3. Camera</label><select id="device"><option value="">Default rear camera</option></select><div class="row"><button id="start" class="primary" disabled>Start camera</button><button id="stop" disabled>Stop</button></div><label for="photo">Or test with a photograph</label><input id="photo" type="file" accept="image/png,image/jpeg,image/webp"><div class="muted">Camera requires HTTPS or localhost, browser permission, and an accessible webcam. OpenCV.js is loaded from the internet.</div><hr><h2>Detection settings</h2><label for="stable">Required stable frames</label><select id="stable"><option>3</option><option selected>5</option><option>7</option></select><label for="cutoff">Minimum darkness above blank baseline</label><select id="cutoff"><option value="0.10">Very sensitive (+10%)</option><option value="0.16" selected>Balanced (+16%)</option><option value="0.23">Conservative (+23%)</option><option value="0.30">Very conservative (+30%)</option></select><label for="separation">Minimum difference between first and second choice</label><select id="separation"><option value="0.06">Sensitive (6%)</option><option value="0.10" selected>Balanced (10%)</option><option value="0.16">Strict (16%)</option></select><label><input id="calibration" type="checkbox" checked style="width:auto"> Show bubble-position diagnostics</label><div class="muted">Calibration checks the unshaded background on the current page. Printed A/B/C/D letters are included in that background. Thresholds are experimental: verify against hand-marked samples.</div><div class="row"><button id="rescan" disabled>Rescan current sheet</button><button id="download" disabled>Export scan JSON</button></div><div class="muted">This prototype identifies marks but does not calculate a score until an answer key is provided. Ambiguous marks are flagged rather than silently graded.</div></aside>
+<section class="panel"><h2>Real-time detection</h2><div class="viewport" id="viewport"><video id="video" autoplay muted playsinline></video><img id="still" alt="Uploaded answer sheet photograph"><canvas id="overlay"></canvas></div><div class="notice" id="status">Import template to begin.</div><div class="metrics"><div class="metric"><b id="markerCount">0 / 4</b>Markers</div><div class="metric"><b id="stability">0 / 5</b>Stable frames</div><div class="metric"><b id="recognized">—</b>Answers</div></div><h2 style="margin-top:20px">Detected responses</h2><div class="scroll"><table id="results"><thead><tr><th>Item</th><th>Result</th><th>Strongest fill</th></tr></thead><tbody id="rows"><tr><td colspan="3">No scan yet.</td></tr></tbody></table></div><h2 style="margin-top:18px">Aligned-sheet diagnostic</h2><div class="muted">Compare the colored circles with the printed bubbles. Green = selected; orange = review or multiple; blue = unmarked. If circles do not sit exactly over bubbles, recognition is invalid regardless of lighting.</div><div class="viewport" style="max-height:600px;overflow:auto"><canvas id="aligned" style="width:100%;height:auto;background:white"></canvas></div><p id="debug"></p></section></main>
+<script src="https://docs.opencv.org/4.x/opencv.js" async></script>
+<script>
+'use strict';
+const el=id=>document.getElementById(id);
+const state={template:null,page:null,stream:null,lastCorners:null,stable:0,done:false,busy:false,lastTick:0,result:null,stillMode:false,workingCanvas:document.createElement('canvas')};
+const W=state.workingCanvas,wx=W.getContext('2d',{willReadFrequently:true});
+let cvReady=false;
+const waitForCV=setInterval(()=>{if(window.cv&&cv.Mat&&cv.findContours){cvReady=true;clearInterval(waitForCV);if(state.template)notify('OpenCV ready. Start camera or upload a photograph.');}},250);
+function notify(s,type=''){el('status').textContent=s;el('status').className='notice '+type;}
+function validate(t){if(t.schema!=='quickscan.omr.v1'||!Array.isArray(t.markers?.centers)||t.markers.centers.length!==4||!Array.isArray(t.pages)||!t.pages.length||!t.normalizedImage?.pixelsPerMM)throw Error('Incompatible or invalid template. Export JSON from QuickScan designer.');for(const page of t.pages){if(!Array.isArray(page.questions))throw Error('Missing page question coordinates.');for(const q of page.questions){if(!Number.isInteger(q.number)||!Array.isArray(q.bubbles)||q.bubbles.length!==4||q.bubbles.some(b=>!Number.isFinite(b.xMM)||!Number.isFinite(b.yMM)))throw Error('Invalid question coordinates.');}}}
+el('template').addEventListener('change',async e=>{try{const f=e.target.files[0];if(!f)return;const t=JSON.parse(await f.text());validate(t);state.template=t;el('page').replaceChildren(...t.pages.map((p,i)=>{const op=document.createElement('option');op.value=i;op.textContent=`Page ${p.pageNumber} / ${t.pages.length} — ${p.questions.length} items`;return op;}));el('page').disabled=false;state.page=0;state.done=false;state.result=null;el('start').disabled=false;el('rescan').disabled=false;el('templateStatus').textContent=`${t.configuration.questionCount} items · ${t.pages.length} page(s) · ${t.paper.widthMM} × ${t.paper.heightMM} mm`;notify(cvReady?'Template ready. Start camera or upload photo.':'Template ready. Loading OpenCV.js…');}catch(err){notify(err.message,'warn');}});
+el('page').onchange=()=>{state.page=Number(el('page').value);resetScan();};
+async function listCameras(){try{const devices=await navigator.mediaDevices.enumerateDevices();const cams=devices.filter(d=>d.kind==='videoinput');el('device').replaceChildren(new Option('Default rear camera',''),...cams.map((d,i)=>new Option(d.label||`Camera ${i+1}`,d.deviceId)));}catch(e){}}
+async function startCamera(){if(!state.template){notify('Import the matching JSON first.','warn');return;}if(!cvReady){notify('OpenCV.js is not loaded. Check internet access.','warn');return;}stopCamera();try{const selected=el('device').value;const constraints=selected?{deviceId:{exact:selected}}:{facingMode:{ideal:'environment'}};const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{...constraints,width:{ideal:1920},height:{ideal:1080}}});state.stream=stream;state.stillMode=false;el('still').style.display='none';el('video').style.display='block';el('video').srcObject=stream;await el('video').play();el('start').disabled=true;el('stop').disabled=false;resetScan();await listCameras();requestAnimationFrame(loop);}catch(err){notify('Camera error: '+err.message,'warn');}}
+function stopCamera(){if(state.stream){state.stream.getTracks().forEach(t=>t.stop());state.stream=null;}el('video').srcObject=null;el('stop').disabled=true;el('start').disabled=!state.template;}
+el('start').onclick=startCamera;el('stop').onclick=()=>{stopCamera();notify('Camera stopped.');};el('device').onchange=()=>{if(state.stream)startCamera();};
+function resetScan(){state.done=false;state.lastCorners=null;state.stable=0;state.result=null;el('download').disabled=true;el('stability').textContent=`0 / ${el('stable').value}`;el('recognized').textContent='—';el('rows').innerHTML='<tr><td colspan="3">Waiting for scan.</td></tr>';notify('Find all four corner squares and hold the paper steady.');}
+el('rescan').onclick=resetScan;
+el('photo').onchange=async e=>{if(!state.template||!cvReady){notify('Import a template and load OpenCV first.','warn');return;}const f=e.target.files[0];if(!f)return;stopCamera();const url=URL.createObjectURL(f);const pic=el('still');pic.onload=()=>{URL.revokeObjectURL(url);state.stillMode=true;el('video').style.display='none';pic.style.display='block';resetScan();const frame=captureFrame(pic);analyze(frame,true);};pic.src=url;};
+function captureFrame(element){const w=element.videoWidth||element.naturalWidth,h=element.videoHeight||element.naturalHeight;const maxSide=1400,scale=Math.min(1,maxSide/Math.max(w,h));W.width=Math.round(w*scale);W.height=Math.round(h*scale);wx.drawImage(element,0,0,W.width,W.height);return cv.imread(W);}
+function squareCandidates(binary){const contours=new cv.MatVector(),hierarchy=new cv.Mat(),out=[];cv.findContours(binary,contours,hierarchy,cv.RETR_LIST,cv.CHAIN_APPROX_SIMPLE);const frameArea=binary.cols*binary.rows;for(let i=0;i<contours.size();i++){const contour=contours.get(i),area=cv.contourArea(contour),rect=cv.boundingRect(contour);if(area/frameArea>.00012&&area/frameArea<.024&&rect.width>6&&rect.height>6){const ratio=rect.width/rect.height;const poly=new cv.Mat();cv.approxPolyDP(contour,poly,cv.arcLength(contour,true)*.045,true);if(poly.rows===4&&ratio>.65&&ratio<1.52&&area/(rect.width*rect.height)>.62){out.push({x:rect.x+rect.width/2,y:rect.y+rect.height/2,size:Math.sqrt(area),area});}poly.delete();}contour.delete();}contours.delete();hierarchy.delete();return out.sort((a,b)=>b.area-a.area).slice(0,80);}
+function locateCorners(candidates,w,h){if(candidates.length<4)return null; // Choose corner-like candidates relative to their candidate envelope.
+let best=null,bestScore=Infinity;const corners=[[.10,.10],[.90,.10],[.90,.90],[.10,.90]];
+// Compare candidates to the four quadrants in a camera frame. Allow moderate perspective skew.
+const bbox={minX:Math.min(...candidates.map(p=>p.x)),maxX:Math.max(...candidates.map(p=>p.x)),minY:Math.min(...candidates.map(p=>p.y)),maxY:Math.max(...candidates.map(p=>p.y))};
+const midX=(bbox.minX+bbox.maxX)/2,midY=(bbox.minY+bbox.maxY)/2;
+const quadrants=[[],[],[],[]];for(const p of candidates){const idx=(p.y<midY?0:2)+(p.x<midX?0:1);quadrants[idx].push(p);}const order=[0,1,3,2];if(order.some(i=>!quadrants[i].length))return null;
+const sorted=order.map((i,k)=>quadrants[i].sort((a,b)=>{const targetX=k===0||k===3?bbox.minX:bbox.maxX,targetY=k<=1?bbox.minY:bbox.maxY;return Math.hypot(a.x-targetX,a.y-targetY)-Math.hypot(b.x-targetX,b.y-targetY);}).slice(0,6));
+for(const a of sorted[0])for(const b of sorted[1])for(const c of sorted[2])for(const d of sorted[3]){const pts=[a,b,c,d],ss=pts.map(p=>p.size),sizeRatio=Math.max(...ss)/Math.min(...ss);if(sizeRatio>2.3)continue;const top=Math.hypot(b.x-a.x,b.y-a.y),bottom=Math.hypot(c.x-d.x,c.y-d.y),left=Math.hypot(d.x-a.x,d.y-a.y),right=Math.hypot(c.x-b.x,c.y-b.y);if(Math.min(top,bottom,left,right)<Math.max(w,h)*.15)continue;const aspect=(left+right)/(top+bottom);const expected=state.template?(state.template.paper.heightMM-32)/(state.template.paper.widthMM-32):1.65;if(aspect<expected*.55||aspect>expected*1.8)continue;const polygon=Math.abs(pts.reduce((s,p,i)=>s+p.x*pts[(i+1)%4].y-pts[(i+1)%4].x*p.y,0))/2;if(polygon<w*h*.08)continue;const score=Math.abs(Math.log(aspect/expected))*2+Math.log(sizeRatio)+Math.abs(Math.log(top/bottom))*.6+Math.abs(Math.log(left/right))*.6; if(score<bestScore){best=pts;bestScore=score;}}
+return best&&bestScore<2.0?best:null;}
+function detect(frame){const gray=new cv.Mat(),blur=new cv.Mat(),binary=new cv.Mat();cv.cvtColor(frame,gray,cv.COLOR_RGBA2GRAY);cv.GaussianBlur(gray,blur,new cv.Size(5,5),0);cv.adaptiveThreshold(blur,binary,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY_INV,31,10);const candidates=squareCandidates(binary),corners=locateCorners(candidates,frame.cols,frame.rows);gray.delete();blur.delete();binary.delete();return {corners,candidates};}
+function rectified(frame,corners){const t=state.template,scale=t.normalizedImage.pixelsPerMM,width=t.normalizedImage.widthPX,height=t.normalizedImage.heightPX;const source=cv.matFromArray(4,1,cv.CV_32FC2,corners.flatMap(p=>[p.x,p.y]));const target=cv.matFromArray(4,1,cv.CV_32FC2,t.markers.centers.flatMap(p=>[p.xMM*scale,p.yMM*scale]));const matrix=cv.getPerspectiveTransform(source,target),out=new cv.Mat();cv.warpPerspective(frame,out,matrix,new cv.Size(width,height),cv.INTER_LINEAR,cv.BORDER_CONSTANT,new cv.Scalar(255,255,255,255));source.delete();target.delete();matrix.delete();return out;}
+function readSheet(corrected){
+ const t=state.template,scale=t.normalizedImage.pixelsPerMM,gray=new cv.Mat(),mask=new cv.Mat();
+ cv.cvtColor(corrected,gray,cv.COLOR_RGBA2GRAY);
+ // Local threshold reduces uneven illumination across the page.
+ cv.adaptiveThreshold(gray,mask,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY_INV,41,8);
+ const questions=t.pages[state.page].questions;
+ // Sampling well inside the printed border avoids the strong black ring.
+ const raw=questions.map(q=>q.bubbles.map(b=>{
+  const x=b.xMM*scale,y=b.yMM*scale,r=(b.radiusMM||2.2)*scale*.59;
+  let dark=0,total=0;
+  for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++)for(let dx=-Math.ceil(r);dx<=Math.ceil(r);dx++){
+   if(dx*dx+dy*dy>r*r)continue;
+   const px=Math.round(x+dx),py=Math.round(y+dy);
+   if(px>=0&&py>=0&&px<mask.cols&&py<mask.rows){dark+=mask.ucharPtr(py,px)[0]>0?1:0;total++;}
+  }
+  return total?dark/total:0;
+ }));
+ // Use the lower 40% per option as the ordinary PRINTED letter baseline.
+ // Each column of options should contain sufficient blanks for calibration.
+ const baseline=[0,1,2,3].map(i=>{
+   const sorted=raw.map(row=>row[i]).sort((a,b)=>a-b);
+   const len=Math.max(1,Math.floor(sorted.length*.4));
+   return sorted.slice(0,len).reduce((a,b)=>a+b,0)/len;
+ });
+ const minExcess=Number(el('cutoff').value),minGap=Number(el('separation').value);
+ const data=questions.map((q,k)=>{
+  const ratios=raw[k],excess=ratios.map((value,i)=>Math.max(0,value-baseline[i]));
+  const ranked=excess.map((r,i)=>({r,i})).sort((a,b)=>b.r-a.r);
+  const candidates=ranked.filter(v=>v.r>=minExcess);
+  let answer='BLANK';
+  if(candidates.length>=2)answer='MULTIPLE';
+  else if(candidates.length===1){answer=ranked[0].r-ranked[1].r<minGap?'REVIEW':'ABCD'[ranked[0].i];}
+  else if(ranked[0].r>=minExcess*.7)answer='REVIEW';
+  return {number:q.number,answer,fillRatios:ratios.map(v=>+v.toFixed(3)),excess:excess.map(v=>+v.toFixed(3)),strongest:+ranked[0].r.toFixed(3)};
+ });
+ gray.delete();mask.delete();
+ return {data,baseline};
+}
+function showAligned(corrected,answers){
+ const canvas=el('aligned');cv.imshow(canvas,corrected);
+ if(!el('calibration').checked)return;
+ const ctx=canvas.getContext('2d'),scale=state.template.normalizedImage.pixelsPerMM;
+ for(const q of state.template.pages[state.page].questions){
+   const answer=answers.find(a=>a.number===q.number);
+   q.bubbles.forEach((b,i)=>{
+     const isMarked=answer.answer==='ABCD'[i];
+     ctx.beginPath();ctx.arc(b.xMM*scale,b.yMM*scale,(b.radiusMM||2.2)*scale,0,Math.PI*2);
+     ctx.lineWidth=2.1;ctx.strokeStyle=(answer.answer==='MULTIPLE'||answer.answer==='REVIEW')?'#f97316':isMarked?'#16a34a':'#2563eb';ctx.stroke();
+   });
+ }
+}
+function paintOverlay(corners,w,h){const canvas=el('overlay');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);if(!corners)return;ctx.strokeStyle=state.done?'#16a34a':'#facc15';ctx.lineWidth=Math.max(3,w/300);ctx.beginPath();corners.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.stroke();ctx.fillStyle='#22c55e';for(const p of corners){ctx.beginPath();ctx.arc(p.x,p.y,Math.max(5,w/120),0,Math.PI*2);ctx.fill();}}
+function finish(frame,corners){let aligned;try{
+ aligned=rectified(frame,corners);
+ const {data:answers,baseline}=readSheet(aligned);
+ showAligned(aligned,answers);
+ state.result={schema:'quickscan.scan.v2',templateVersion:state.template.templateVersion,examCode:state.template.examCode,setCode:state.template.setCode,pageNumber:state.template.pages[state.page].pageNumber,scannedAt:new Date().toISOString(),calibration:{method:'per-option-low40-baseline',baseline,minExcess:Number(el('cutoff').value),minimumGap:Number(el('separation').value)},answers};
+ state.done=true;el('download').disabled=false;el('recognized').textContent=answers.length;
+ el('rows').replaceChildren(...answers.map(a=>{const tr=document.createElement('tr');if(['REVIEW','MULTIPLE'].includes(a.answer))tr.className='flag';for(const val of [a.number,a.answer,Math.round(a.strongest*100)+'% above baseline']){const td=document.createElement('td');td.textContent=val;tr.appendChild(td);}return tr;}));
+ const uncertain=answers.filter(a=>['REVIEW','MULTIPLE'].includes(a.answer)).length;
+ el('debug').textContent=`Blank baselines A–D: ${baseline.map(v=>(v*100).toFixed(0)+'%').join(', ')}. These should be similar for the same print layout. Inspect the aligned-sheet diagnostic before accepting answers.`;
+ notify(`Scan complete: ${answers.length} items; ${uncertain} ambiguous. Confirm circles align with bubbles, then export or rescan.`,uncertain?'warn':'success');
+ }catch(err){notify('Recognition error: '+err.message,'warn');}finally{if(aligned)aligned.delete();}}
+function analyze(frame,oneShot=false){try{const {corners,candidates}=detect(frame);paintOverlay(corners,frame.cols,frame.rows);el('markerCount').textContent=(corners?'4':'0')+' / 4';el('debug').textContent=`Candidate marker contours: ${candidates.length}. Detection is a prototype; verify geometry under your camera and lighting.`;if(!corners){state.stable=0;state.lastCorners=null;if(!state.done)notify('Searching for four corner markers…');}else if(!state.done){let similar=false;if(state.lastCorners){const drift=corners.reduce((s,p,i)=>s+Math.hypot(p.x-state.lastCorners[i].x,p.y-state.lastCorners[i].y),0)/4;similar=drift<Math.max(frame.cols,frame.rows)*.008;}state.stable=similar?state.stable+1:1;state.lastCorners=corners.map(p=>({...p}));if(oneShot||state.stable>=Number(el('stable').value)){finish(frame,corners);}else notify(`Markers found. Hold still: ${state.stable}/${el('stable').value}`);}el('stability').textContent=`${state.stable} / ${el('stable').value}`;}catch(err){notify('Processing problem: '+err.message,'warn');}finally{frame.delete();}}
+function loop(time){if(!state.stream)return;requestAnimationFrame(loop);if(state.busy||state.done||time-state.lastTick<180||el('video').readyState<2)return;state.lastTick=time;state.busy=true;try{analyze(captureFrame(el('video')));}finally{state.busy=false;}}
+el('download').onclick=()=>{if(!state.result)return;const blob=new Blob([JSON.stringify(state.result,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`scan-${state.result.examCode}-page-${state.result.pageNumber}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+window.addEventListener('beforeunload',stopCamera);
+</script></body></html>
