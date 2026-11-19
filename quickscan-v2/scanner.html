@@ -5,7 +5,7 @@
 </style>
 </head><body>
 <header><h1>QuickScan · Live Scanner</h1><a href="index.html">← Answer sheet designer</a></header>
-<main><aside class="panel"><h2>Scan setup</h2><div class="notice" id="workflow">Step 1: Import template, then scan and confirm the correct-answer sheet for every page.</div><label for="scanMode">Scanning mode</label><select id="scanMode"><option value="key">1 — Correct answer key</option><option value="student" disabled>2 — Student answers (complete key first)</option></select><label for="studentCsv">Import student list (.csv)</label><input id="studentCsv" type="file" accept=".csv,text/csv"><div class="muted">CSV must contain a Student ID column. Student Name is optional. Student ID must contain exactly 10 digits (keep leading zeros). Format the CSV column as Text in Excel. The list is kept only in this browser session.</div><div class="notice" id="studentMatch">Student identification: import the CSV, then scan the 10-digit shaded ID on each answer sheet.</div><div class="row"><button id="confirmKey" disabled>Confirm this key page</button><button id="savePage" disabled>Accept student page</button></div><div class="row"><button id="clearKeys">Clear key / session</button><button id="exportCSV" disabled>Export scores CSV</button></div><div class="muted" id="keyProgress">Answer key: not scanned.</div><div class="muted" id="sessionSummary">No student results yet.</div><hr><label for="template">1. Import matching scanner template (.json)</label><input id="template" type="file" accept="application/json,.json"><div class="notice" id="templateStatus">Select the JSON exported from the exact printed 8.5 × 13 inch answer sheet.</div><label for="page">2. Page to scan</label><select id="page" disabled><option>Import a template first</option></select><label for="device">3. Camera</label><select id="device"><option value="">Default rear camera</option></select><div class="row"><button id="start" class="primary" disabled>Start camera</button><button id="stop" disabled>Stop</button></div><label for="photo">Or test with a photograph</label><input id="photo" type="file" accept="image/png,image/jpeg,image/webp"><div class="muted">Camera requires HTTPS or localhost, browser permission, and an accessible webcam. OpenCV.js is loaded from the internet.</div><hr><h2>Detection settings</h2><label for="stable">Required stable frames</label><select id="stable"><option>3</option><option selected>5</option><option>7</option></select><label for="cutoff">Minimum darkness above blank baseline</label><select id="cutoff"><option value="0.10">Very sensitive (+10%)</option><option value="0.16" selected>Balanced (+16%)</option><option value="0.23">Conservative (+23%)</option><option value="0.30">Very conservative (+30%)</option></select><label for="separation">Minimum difference between first and second choice</label><select id="separation"><option value="0.06">Sensitive (6%)</option><option value="0.10" selected>Balanced (10%)</option><option value="0.16">Strict (16%)</option></select><label><input id="calibration" type="checkbox" checked style="width:auto"> Show bubble-position diagnostics</label><div class="muted">The scanner reads the ten student-number columns separately from the A–D answer bubbles. ID fill thresholds are initial values and must be calibrated with actual pencil/pen samples and lighting.</div><div class="row"><button id="rescan" disabled>Rescan current sheet</button><button id="download" disabled>Export scan JSON</button></div><div class="muted">Scan a correct-answer sheet first. Review detected choices, confirm all key pages, import the CSV roster, then scan student sheets. Students must shade exactly one digit in each of the ten ID columns. Results remain in browser memory until exported; nothing is uploaded.</div></aside>
+<main><aside class="panel"><h2>Scan setup</h2><div class="notice" id="workflow">Step 1: Import template, then scan and confirm the correct-answer sheet for every page.</div><label for="scanMode">Scanning mode</label><select id="scanMode"><option value="key">1 — Correct answer key</option><option value="student" disabled>2 — Student answers (complete key first)</option></select><label for="studentCsv">Import student list (.csv)</label><input id="studentCsv" type="file" accept=".csv,text/csv"><div class="muted">CSV must contain a Student ID column. Student Name is optional. Student ID must contain exactly 10 digits (keep leading zeros). Format the CSV column as Text in Excel. The list is kept only in this browser session.</div><div class="notice" id="studentMatch">Student identification: import the CSV, then scan the 10-digit shaded ID on each answer sheet.</div><div class="row"><button id="confirmKey" disabled>Confirm this key page</button><button id="savePage" disabled>Accept student page</button></div><div class="row"><button id="clearKeys">Clear key / session</button><button id="exportCSV" disabled>Export scores CSV</button></div><div class="muted" id="keyProgress">Answer key: not scanned.</div><div class="muted" id="sessionSummary">No student results yet.</div><hr><label for="template">1. Import matching scanner template (.json)</label><input id="template" type="file" accept="application/json,.json"><div class="notice" id="templateStatus">Select the JSON exported from the exact printed 8.5 × 13 inch answer sheet.</div><label for="page">2. Page to scan</label><select id="page" disabled><option>Import a template first</option></select><label for="device">3. Camera</label><select id="device"><option value="">Default rear camera</option></select><div class="row"><button id="start" class="primary" disabled>Start camera</button><button id="stop" disabled>Stop</button></div><label for="photo">Or test with a photograph</label><input id="photo" type="file" accept="image/png,image/jpeg,image/webp"><div class="muted">Camera requires HTTPS or localhost, browser permission, and an accessible webcam. OpenCV.js is loaded from the internet.</div><hr><h2>Detection settings</h2><label for="stable">Required stable frames</label><select id="stable"><option>3</option><option selected>5</option><option>7</option></select><label for="cutoff">Minimum darkness above blank baseline</label><select id="cutoff"><option value="0.10">Very sensitive (+10%)</option><option value="0.16" selected>Balanced (+16%)</option><option value="0.23">Conservative (+23%)</option><option value="0.30">Very conservative (+30%)</option></select><label for="separation">Minimum difference between first and second choice</label><select id="separation"><option value="0.06">Sensitive (6%)</option><option value="0.10" selected>Balanced (10%)</option><option value="0.16">Strict (16%)</option></select><label><input id="calibration" type="checkbox" checked style="width:auto"> Show bubble-position diagnostics</label><div class="muted">The scanner reads the ten student-number columns separately from the A–D answer bubbles. ID fill thresholds are initial values and must be calibrated with actual pencil/pen samples and lighting.</div><div class="row"><button id="rescan" disabled>Rescan current sheet</button><button id="download" disabled>Export scan JSON</button></div><div class="muted">Scan and confirm the correct-answer key pages first. Student-number validation is disabled in Answer Key mode. After all key pages are confirmed, import the CSV roster and switch to Student Sheet mode. Students must shade exactly one digit in each of the ten ID columns. Results remain in browser memory until exported; nothing is uploaded.</div></aside>
 <section class="panel"><h2>Real-time detection · full 8.5 × 13 in sheet</h2><div class="viewport" id="viewport"><video id="video" autoplay muted playsinline></video><img id="still" alt="Uploaded answer sheet photograph"><canvas id="overlay"></canvas></div><div class="notice" id="status">Import template to begin.</div><div class="metrics"><div class="metric"><b id="markerCount">0 / 4</b>Markers</div><div class="metric"><b id="stability">0 / 5</b>Stable frames</div><div class="metric"><b id="recognized">—</b>Answers</div></div><div class="notice" id="detectedStudent">Detected student number: —</div><h2 style="margin-top:20px">Detected responses</h2><div class="scroll"><table id="results"><thead><tr><th>Item</th><th>Result</th><th>Reference / fill</th></tr></thead><tbody id="rows"><tr><td colspan="3">No scan yet.</td></tr></tbody></table></div><h2 style="margin-top:18px">Aligned-sheet diagnostic</h2><div class="muted">Compare the colored circles with the printed bubbles. Green = selected; orange = review or multiple; blue = unmarked. If circles do not sit exactly over bubbles, recognition is invalid regardless of lighting.</div><div class="viewport" style="max-height:600px;overflow:auto"><canvas id="aligned" style="width:100%;height:auto;background:white"></canvas></div><p id="debug"></p></section></main>
 <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
 <script>
@@ -64,24 +64,28 @@ function readSheet(corrected){
  // Local threshold reduces uneven illumination across the page.
  cv.adaptiveThreshold(gray,mask,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY_INV,41,8);
  const questions=t.pages[state.page].questions;
- // Read the fixed 10-column x 10-row student-number bubble grid.
- const idRead=t.studentIdentification.positions.map((position,col)=>{
-  const samples=position.bubbles.map(b=>{
-   const x=b.xMM*scale,y=b.yMM*scale,r=(b.radiusMM||1.075)*scale*.52;let dark=0,total=0;
-   for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++)for(let dx=-Math.ceil(r);dx<=Math.ceil(r);dx++){
-    if(dx*dx+dy*dy>r*r)continue;const px=Math.round(x+dx),py=Math.round(y+dy);
-    if(px>=0&&py>=0&&px<mask.cols&&py<mask.rows){dark+=mask.ucharPtr(py,px)[0]>0?1:0;total++;}
-   }
-   return total?dark/total:0;
+ // Student numbers are required only for student sheets, never for the answer key.
+ let studentIdentification=null;
+ if(el('scanMode').value==='student'){
+  const idRead=t.studentIdentification.positions.map((position,col)=>{
+   const samples=position.bubbles.map(b=>{
+    const x=b.xMM*scale,y=b.yMM*scale,r=(b.radiusMM||1.075)*scale*.52;let dark=0,total=0;
+    for(let dy=-Math.ceil(r);dy<=Math.ceil(r);dy++)for(let dx=-Math.ceil(r);dx<=Math.ceil(r);dx++){
+     if(dx*dx+dy*dy>r*r)continue;const px=Math.round(x+dx),py=Math.round(y+dy);
+     if(px>=0&&py>=0&&px<mask.cols&&py<mask.rows){dark+=mask.ucharPtr(py,px)[0]>0?1:0;total++;}
+    }
+    return total?dark/total:0;
+   });
+   const ranked=samples.map((value,digit)=>({digit,value})).sort((a,b)=>b.value-a.value);
+   const threshold=0.24, gap=0.10;
+   const multiple=ranked[1].value>=threshold;
+   const selected=!multiple&&ranked[0].value>=threshold&&ranked[0].value-ranked[1].value>=gap?String(ranked[0].digit):null;
+   return {position:col+1,digit:selected,status:multiple?'MULTIPLE':selected?'OK':'BLANK_OR_AMBIGUOUS',fillRatios:samples.map(v=>+v.toFixed(3)),strongest:+ranked[0].value.toFixed(3),second:+ranked[1].value.toFixed(3),gap:+(ranked[0].value-ranked[1].value).toFixed(3)};
   });
-  const ranked=samples.map((value,digit)=>({digit,value})).sort((a,b)=>b.value-a.value);
-  const threshold=0.24, gap=0.10;
-  const multiple=ranked[1].value>=threshold;
-  const selected=!multiple&&ranked[0].value>=threshold&&ranked[0].value-ranked[1].value>=gap?String(ranked[0].digit):null;
-  return {position:col+1,digit:selected,status:multiple?'MULTIPLE':selected?'OK':'BLANK_OR_AMBIGUOUS',fillRatios:samples.map(v=>+v.toFixed(3)),strongest:+ranked[0].value.toFixed(3),second:+ranked[1].value.toFixed(3),gap:+(ranked[0].value-ranked[1].value).toFixed(3)};
- });
- const studentNumber=idRead.every(x=>x.digit!==null)?idRead.map(x=>x.digit).join(''):null;
- const studentMatch=studentNumber?state.roster.find(st=>st.id===studentNumber)||null:null;
+  const studentNumber=idRead.every(x=>x.digit!==null)?idRead.map(x=>x.digit).join(''):null;
+  const studentMatch=studentNumber?state.roster.find(st=>st.id===studentNumber)||null:null;
+  studentIdentification={number:studentNumber,match:studentMatch,positions:idRead};
+ }
  // Sampling well inside the printed border avoids the strong black ring.
  const raw=questions.map(q=>q.bubbles.map(b=>{
   const x=b.xMM*scale,y=b.yMM*scale,r=(b.radiusMM||2.2)*scale*.59;
@@ -112,14 +116,16 @@ function readSheet(corrected){
   return {number:q.number,answer,fillRatios:ratios.map(v=>+v.toFixed(3)),excess:excess.map(v=>+v.toFixed(3)),strongest:+ranked[0].r.toFixed(3)};
  });
  gray.delete();mask.delete();
- return {data,baseline};
+ return {data,baseline,studentIdentification};
 }
 function showAligned(corrected,answers){
  const canvas=el('aligned');cv.imshow(canvas,corrected);
  if(!el('calibration').checked)return;
  const ctx=canvas.getContext('2d'),scale=state.template.normalizedImage.pixelsPerMM;
- const idInfo=state.template.studentIdentification;
+ if(el('scanMode').value==='student'){
+  const idInfo=state.template.studentIdentification;
  for(const position of idInfo.positions){for(const b of position.bubbles){ctx.beginPath();ctx.arc(b.xMM*scale,b.yMM*scale,(b.radiusMM||1.075)*scale,0,Math.PI*2);ctx.lineWidth=1.6;ctx.strokeStyle='#7c3aed';ctx.stroke();}}
+ }
  for(const q of state.template.pages[state.page].questions){
    const answer=answers.find(a=>a.number===q.number);
    q.bubbles.forEach((b,i)=>{
@@ -132,14 +138,26 @@ function showAligned(corrected,answers){
 function paintOverlay(corners,w,h){const canvas=el('overlay');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);if(!corners)return;ctx.strokeStyle=state.done?'#16a34a':'#facc15';ctx.lineWidth=Math.max(3,w/300);ctx.beginPath();corners.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.stroke();ctx.fillStyle='#22c55e';for(const p of corners){ctx.beginPath();ctx.arc(p.x,p.y,Math.max(5,w/120),0,Math.PI*2);ctx.fill();}}
 function finish(frame,corners){let aligned;try{
  aligned=rectified(frame,corners);
- const {data:answers,baseline}=readSheet(aligned);
+ const {data:answers,baseline,studentIdentification}=readSheet(aligned);
  showAligned(aligned,answers);
- state.result={schema:'quickscan.scan.v2',templateVersion:state.template.templateVersion,examCode:state.template.examCode,setCode:state.template.setCode,pageNumber:state.template.pages[state.page].pageNumber,scannedAt:new Date().toISOString(),calibration:{method:'per-option-low40-baseline',baseline,minExcess:Number(el('cutoff').value),minimumGap:Number(el('separation').value)},answers};
- state.done=true;el('download').disabled=false;el('recognized').textContent=answers.length;const idText=studentIdentification.number||'INVALID / INCOMPLETE';const matchText=studentIdentification.match?`${studentIdentification.match.id} — ${studentIdentification.match.name||'Roster match'}`:(studentIdentification.number?'Not found in CSV roster':'Check each digit column; shade exactly one bubble in every column. Multiple marks are invalid.');el('detectedStudent').textContent=`Detected student number: ${idText} · ${matchText}`;el('detectedStudent').className='notice '+(studentIdentification.match?'success':'warn');updateWorkflow();
- el('rows').replaceChildren(...answers.map(a=>{const tr=document.createElement('tr');if(['REVIEW','MULTIPLE'].includes(a.answer))tr.className='flag';for(const val of [a.number,a.answer,el('scanMode').value==='student'?`Key: ${state.keys[state.result.pageNumber]?.[a.number]||'?'} · ${a.answer===state.keys[state.result.pageNumber]?.[a.number]?'Correct':'Incorrect'}`:Math.round(a.strongest*100)+'% above baseline']){const td=document.createElement('td');td.textContent=val;tr.appendChild(td);}return tr;}));
+ state.result={schema:'quickscan.scan.v2',templateVersion:state.template.templateVersion,examCode:state.template.examCode,setCode:state.template.setCode,pageNumber:state.template.pages[state.page].pageNumber,scannedAt:new Date().toISOString(),scanMode:el('scanMode').value,studentIdentification:studentIdentification||null,studentMatch:studentIdentification?.match||null,calibration:{method:'per-option-low40-baseline',baseline,minExcess:Number(el('cutoff').value),minimumGap:Number(el('separation').value)},answers};
+ state.done=true;el('download').disabled=false;el('recognized').textContent=answers.length;
+ if(el('scanMode').value==='student'){
+  const idText=studentIdentification.number||'INVALID / INCOMPLETE';
+  const matchText=studentIdentification.match?`${studentIdentification.match.id} — ${studentIdentification.match.name||'Roster match'}`:(studentIdentification.number?'Not found in CSV roster':'Check each digit column; shade exactly one bubble in every column. Multiple marks are invalid.');
+  el('detectedStudent').textContent=`Detected student number: ${idText} · ${matchText}`;
+  el('detectedStudent').className='notice '+(studentIdentification.match?'success':'warn');
+ }else{
+  el('detectedStudent').textContent='Answer-key mode: student number is not required.';
+  el('detectedStudent').className='notice success';
+ }
+ updateWorkflow();
+el('rows').replaceChildren(...answers.map(a=>{const tr=document.createElement('tr');if(['REVIEW','MULTIPLE'].includes(a.answer))tr.className='flag';for(const val of [a.number,a.answer,el('scanMode').value==='student'?`Key: ${state.keys[state.result.pageNumber]?.[a.number]||'?'} · ${a.answer===state.keys[state.result.pageNumber]?.[a.number]?'Correct':'Incorrect'}`:Math.round(a.strongest*100)+'% above baseline']){const td=document.createElement('td');td.textContent=val;tr.appendChild(td);}return tr;}));
  const uncertain=answers.filter(a=>!validChoice(a.answer)).length;
  el('debug').textContent=`Blank baselines A–D: ${baseline.map(v=>(v*100).toFixed(0)+'%').join(', ')}. These should be similar for the same print layout. Inspect the aligned-sheet diagnostic before accepting answers.`;
- notify(el('scanMode').value==='key'?`Key scan: ${answers.length} items, ${uncertain} ambiguous. Inspect alignment; confirm this key page only if every item has one valid answer.`:`Student scan: ${studentIdentification.number||'invalid ID'}; ${studentIdentification.match?'roster match confirmed':'ID must be corrected or match the CSV'}. ${answers.filter(a=>a.answer===state.keys[state.result.pageNumber]?.[a.number]).length}/${answers.length} correct on this page.`,(uncertain||!studentIdentification.match)?'warn':'success');
+ const isStudentMode=el('scanMode').value==='student';
+ const studentWarning=isStudentMode&&!studentIdentification.match;
+ notify(!isStudentMode?`Key scan: ${answers.length} items, ${uncertain} ambiguous. Student number is ignored in answer-key mode. Inspect alignment; confirm this key page only if every item has one valid answer.`:`Student scan: ${studentIdentification.number||'invalid ID'}; ${studentIdentification.match?'roster match confirmed':'ID must be corrected or match the CSV'}. ${answers.filter(a=>a.answer===state.keys[state.result.pageNumber]?.[a.number]).length}/${answers.length} correct on this page.`,(uncertain||studentWarning)?'warn':'success');
  }catch(err){notify('Recognition error: '+err.message,'warn');}finally{if(aligned)aligned.delete();}}
 function analyze(frame,oneShot=false){try{const {corners,candidates}=detect(frame);paintOverlay(corners,frame.cols,frame.rows);el('markerCount').textContent=(corners?'4':'0')+' / 4';el('debug').textContent=`Candidate marker contours: ${candidates.length}. Orientation is accepted only when exactly one white-center marker is found.`;if(!corners){state.stable=0;state.lastCorners=null;if(!state.done)notify('Searching for four markers and the unique white-center orientation marker…');}else if(!state.done){let similar=false;if(state.lastCorners){const drift=corners.reduce((s,p,i)=>s+Math.hypot(p.x-state.lastCorners[i].x,p.y-state.lastCorners[i].y),0)/4;similar=drift<Math.max(frame.cols,frame.rows)*.008;}state.stable=similar?state.stable+1:1;state.lastCorners=corners.map(p=>({...p}));if(oneShot||state.stable>=Number(el('stable').value)){finish(frame,corners);}else notify(`Markers found. Hold still: ${state.stable}/${el('stable').value}`);}el('stability').textContent=`${state.stable} / ${el('stable').value}`;}catch(err){notify('Processing problem: '+err.message,'warn');}finally{frame.delete();}}
 function loop(time){if(!state.stream)return;requestAnimationFrame(loop);if(state.busy||state.done||time-state.lastTick<180||el('video').readyState<2)return;state.lastTick=time;state.busy=true;try{analyze(captureFrame(el('video')));}finally{state.busy=false;}}

@@ -1,4 +1,4 @@
-# QuickScan v10 — Full Long-Bond OMR, No Database
+# QuickScan v11 — Full Long-Bond OMR, No Database
 
 ## Files
 - `index.html` — Full-page 8.5 × 13 inch (215.9 × 330.2 mm) portrait answer-sheet designer.
@@ -44,3 +44,9 @@ No database or server-side record storage is used. The roster, answer key, and s
 
 ## Validation
 JavaScript syntax and ZIP integrity can be checked programmatically, but real print alignment and camera recognition must be tested with actual long-bond printouts, different phones, pencil/pen marks, lighting, and all four paper orientations before using QuickScan for live examination grading. This prototype is not a substitute for supervised validation.
+
+
+## v12 scanning-mode correction
+- Answer Key mode reads answer bubbles only; student-number shading is not required or validated.
+- Student Sheet mode reads the 10-digit ID and checks it against the imported roster before saving results.
+- Scan results record their mode; answer-key scans show a clear message that student numbers are not required.
