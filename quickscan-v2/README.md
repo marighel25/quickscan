@@ -50,3 +50,9 @@ JavaScript syntax and ZIP integrity can be checked programmatically, but real pr
 - Answer Key mode reads answer bubbles only; student-number shading is not required or validated.
 - Student Sheet mode reads the 10-digit ID and checks it against the imported roster before saving results.
 - Scan results record their mode; answer-key scans show a clear message that student numbers are not required.
+
+
+## v13 student-number alignment correction
+- Corrected the 10-digit student-number bubble coordinates to match the actual compact right-column grid on the printed 8.5 × 13 inch sheet.
+- Student ID bubble centers now start at X=136.85 mm and Y=78.00 mm, with 5.70 mm column pitch and 3.50 mm row pitch.
+- Export a new JSON template from the updated designer and use that same template when scanning newly printed v13 sheets. Do not mix older printed sheets or JSON templates with this version.
