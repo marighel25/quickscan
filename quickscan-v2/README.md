@@ -56,3 +56,9 @@ JavaScript syntax and ZIP integrity can be checked programmatically, but real pr
 - Corrected the 10-digit student-number bubble coordinates to match the actual compact right-column grid on the printed 8.5 × 13 inch sheet.
 - Student ID bubble centers now start at X=136.85 mm and Y=78.00 mm, with 5.70 mm column pitch and 3.50 mm row pitch.
 - Export a new JSON template from the updated designer and use that same template when scanning newly printed v13 sheets. Do not mix older printed sheets or JSON templates with this version.
+
+
+## v23 student-number alignment correction
+- Corrected the student ID bubble Y-coordinate in exported template metadata from 78.0 mm to 74.85 mm to match the actual printed grid position.
+- The change moves scanner diagnostic circles upward by 3.15 mm so they align with the centers of the printed student-number bubbles.
+- Answer-choice layout and student-number bubble design are unchanged.
